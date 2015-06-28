@@ -1,7 +1,7 @@
 #include <Servo.h>
 
-#define ALILE 1
-#define ELEV 0
+#define ALILE 2
+#define ELEV 3
 #define BUTTON 13
 
 #define LEFTMOTOR 5
