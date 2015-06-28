@@ -28,6 +28,8 @@ int oldElev = 0;
 int leftMotor = 0;
 int rightMotor = 0;
 
+int trunReduct = 0.7;
+
 Servo leftServo;
 Servo rightServo;
  
@@ -58,15 +60,16 @@ void loop() {
   //motors
   if(enabled) {
     if (alie < 1500 - ALILEDEAD || alie > 1500 + ALILEDEAD) {
-      leftServo.writeMicroseconds(alie);
+      leftServo.writeMicroseconds(alie * trunReduct);
       stillTime = time;
     } else {
-      leftServo.write(90);
+      leftServo.writeMicroseconds(1500);
     }
     if (elev < 1500 - ELEVDEAD || elev > 1500 + ELEVDEAD) {
       rightServo.writeMicroseconds(elev);
+	  stillTime = time;
     }  else {
-      rightServo.write(90);
+      rightServo.writeMicroseconds(1500);
     }
   }
   
@@ -79,6 +82,7 @@ void loop() {
   
   if(pulseIn(BUTTON, HIGH) > 1500) {
     enabled = true;
+	stillTime = time;
   }
 }
 
