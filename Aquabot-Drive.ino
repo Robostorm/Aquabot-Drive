@@ -94,6 +94,11 @@ void loop() {
   //motors
   if(enabled) {
     if (alie < alieZero - ALIEDEAD || alie > alieZero + ALIEDEAD) {
+      if(alie > ALIEDEAD ){
+        alie -= ALIEDEAD ;
+      else{
+        alie += ALIEDEAD ;
+      }
       int turn = (double)(alie - alieZero)*trunReduct;
       leftServo.writeMicroseconds(turn+alieZero);
       stillTime = time;
@@ -101,6 +106,11 @@ void loop() {
       leftServo.writeMicroseconds(alieZero);
     }
     if (elev < elevZero - ELEVDEAD || elev > elevZero + ELEVDEAD) {
+      if(elev > ELEVZERO){
+        elev -= ELEVDEAD;
+      else{
+        elev += ELEVDEAD;
+      }
       rightServo.writeMicroseconds(elev);
 	    stillTime = time;
     }  else {
