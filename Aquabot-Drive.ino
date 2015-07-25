@@ -8,13 +8,17 @@
 #define RIGHTMOTOR 6
 
 #define ALIEZERO 1486
-#define ALIEMAX 1000
-#define ALIEMIN 2000
+#define ALIEMAXIN 1912
+#define ALIEMAX 2000
+#define ALIEMININ 1084
+#define ALIEMIN 1000
 #define ALIEDEAD 50
 
 #define ELEVZERO 1486
-#define ELEVMAX 1000
-#define ELEVZMIN 2000
+#define ELEVMAXIN 1912
+#define ELEVMAX 2000
+#define ELEVMININ 1092
+#define ELEVMIN 1000
 #define ELEVDEAD 50
 
 #define STARTDELAY 2000
@@ -23,13 +27,13 @@
 #define LED2 7
 
 boolean enabled = false;
-int stillTime = 0;
-int time = 0;
-int printTime = 0;
-int alieZero = ALIEZERO;
-int elevZero = ELEVZERO;
-int alie = 0;
-int elev = 0;
+unsigned long stillTime = 0;
+unsigned long time = 0;
+unsigned long printTime = 0;
+int alieIn = ALIEZERO;
+int elevIn = ELEVZERO;
+int alie = ALIEZERO;
+int elev = ELEVZERO;
 int oldAlie = 0;
 int oldElev = 0;
 int leftMotor = 0;
@@ -44,7 +48,7 @@ Servo leftServo;
 Servo rightServo;
 
 void setup() {
-  // Attatch Servos
+  // Attach Servos
   leftServo.attach(LEFTMOTOR);
   rightServo.attach(RIGHTMOTOR);
 
@@ -58,7 +62,7 @@ void setup() {
   // Start Serial
   Serial.begin(9600);
 
-  // Attatch interupts
+  // Attach interrupts
   attachInterrupt(ALIE, alieRising, RISING);
   attachInterrupt(ELEV, elevRising, RISING);
 
@@ -67,8 +71,8 @@ void setup() {
   //elevZero = elev;
 
   // Write to center pos, delay to make sure they are calibrated on motor controller
-  leftServo.writeMicroseconds(alieZero);
-  rightServo.writeMicroseconds(elevZero);
+  leftServo.writeMicroseconds(ALIEZERO);
+  rightServo.writeMicroseconds(ELEVZERO);
   delay(STARTDELAY);
 
   // Blink LEDs
@@ -86,41 +90,56 @@ void setup() {
 void loop() {
   time = millis();
   if (time - printTime >= 100) {
-    Serial.print(alie);
-    Serial.print(" : ");
+	Serial.print("Alei In: ");
+	Serial.print(alieIn);
+	Serial.print(" Alei Out: ");
+	Serial.print(alie);
+	Serial.print(" Elev In: ");
+	Serial.print(elevIn);
+	Serial.print(" Elev Out: ");
     Serial.print(elev);
-    Serial.print(" : ");
-    Serial.println(pulseIn(BUTTON, HIGH));
+    Serial.print(" Btn: ");
+    Serial.print(pulseIn(BUTTON, HIGH));
+	Serial.println("\r");
+	
     printTime = time;
   }
 
   //motors
   if(enabled) {
-    if (alie < alieZero - ALIEDEAD || alie > alieZero + ALIEDEAD) {
-      if(alie > ALIEDEAD ){
-        alie -= ALIEDEAD ;
+    if (alieIn < ALIEZERO - ALIEDEAD || alieIn > ALIEZERO + ALIEDEAD) {
+	  if(alieIn > ALIEDEAD ){
+        //alie -= ALIEDEAD ;
+		alie = map(alieIn, ALIEZERO + ALIEDEAD, ALIEMAXIN, ALIEZERO, ALIEMAX);
+		alie = (alie <= 2000) ? alie : 2000;
       }else{
-        alie += ALIEDEAD ;
+        //alie += ALIEDEAD ;
+		alie = map(alieIn, ALIEZERO - ALIEDEAD, ALIEMININ, ALIEZERO, ALIEMIN);
+		alie = (alie >= 1000) ? alie : 1000;
       }
-      int turn = (double)(alie - alieZero)*trunReduct;
-      leftServo.writeMicroseconds(turn+alieZero);
+      int turn = (double)(alie - ALIEZERO) * trunReduct;
+      leftServo.writeMicroseconds(turn + ALIEZERO);
       stillTime = time;
       led2 = true;
     } else {
-      leftServo.writeMicroseconds(alieZero);
+      leftServo.writeMicroseconds(ALIEZERO);
       led2 = false;
     }
-    if (elev < elevZero - ELEVDEAD || elev > elevZero + ELEVDEAD) {
-      if(elev > ELEVZERO){
-        elev -= ELEVDEAD;
+    if (elevIn < ELEVZERO - ELEVDEAD || elevIn > ELEVZERO + ELEVDEAD) {
+	  if(elevIn > ELEVZERO){
+        //elev -= ELEVDEAD;
+		elev = map(elevIn, ELEVZERO + ELEVDEAD, ELEVMAXIN, ELEVZERO, ELEVMAX);
+		elev = (elev <= 2000) ? elev : 2000;
       }else{
-        elev += ELEVDEAD;
+        //elev += ELEVDEAD;
+		elev = map(elevIn, ELEVZERO + ELEVDEAD, ELEVMININ, ELEVZERO, ELEVMIN);
+		elev = (elev >= 1000) ? elev : 1000;
       }
       rightServo.writeMicroseconds(elev);
 	    stillTime = time;
       led2 = true;
     }  else {
-      rightServo.writeMicroseconds(elevZero);
+      rightServo.writeMicroseconds(ELEVZERO);
       led2 = false;
     }
   }
@@ -150,7 +169,7 @@ void alieRising() {
 
 void alieFalling() {
   attachInterrupt(ALIE, alieRising, RISING);
-  alie = micros() - oldAlie;
+  alieIn = micros() - oldAlie;
 }
 
 void elevRising() {
@@ -160,5 +179,5 @@ void elevRising() {
 
 void elevFalling() {
   attachInterrupt(ELEV, elevRising, RISING);
-  elev = micros() - oldElev;
+  elevIn = micros() - oldElev;
 }
