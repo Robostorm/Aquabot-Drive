@@ -73,7 +73,7 @@ void loop() {
     }
   }
   
-  //safty
+  //safety
   if(time - stillTime >= 5000) {
     enabled = false;
     leftServo.write(90);
