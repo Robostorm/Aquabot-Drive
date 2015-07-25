@@ -35,6 +35,9 @@ int oldElev = 0;
 int leftMotor = 0;
 int rightMotor = 0;
 
+boolean led1 = false;
+boolean led2 = false;
+
 double trunReduct = 0.5;
 
 Servo leftServo;
@@ -96,27 +99,36 @@ void loop() {
     if (alie < alieZero - ALIEDEAD || alie > alieZero + ALIEDEAD) {
       if(alie > ALIEDEAD ){
         alie -= ALIEDEAD ;
-      else{
+      }else{
         alie += ALIEDEAD ;
       }
       int turn = (double)(alie - alieZero)*trunReduct;
       leftServo.writeMicroseconds(turn+alieZero);
       stillTime = time;
+      led2 = true;
     } else {
       leftServo.writeMicroseconds(alieZero);
+      led2 = false;
     }
     if (elev < elevZero - ELEVDEAD || elev > elevZero + ELEVDEAD) {
       if(elev > ELEVZERO){
         elev -= ELEVDEAD;
-      else{
+      }else{
         elev += ELEVDEAD;
       }
       rightServo.writeMicroseconds(elev);
 	    stillTime = time;
+      led2 = true;
     }  else {
       rightServo.writeMicroseconds(elevZero);
+      led2 = false;
     }
   }
+
+  led1 = enabled;
+
+  digitalWrite(LED1, led1);
+  digitalWrite(LED2, led2);
 
   //safety
   if(time - stillTime >= 5000) {
