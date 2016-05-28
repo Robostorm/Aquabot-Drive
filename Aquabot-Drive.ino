@@ -1,5 +1,7 @@
 #include <Servo.h>
 
+//#include <PWMServo.h>
+
 #define ALIE 0
 #define ELEV 1
 #define BUTTON 13
@@ -38,7 +40,7 @@ int rightMotor = 0;
 boolean led1 = false;
 boolean led2 = false;
 
-double trunReduct = 0.5;
+double trunReduct = 0.3;
 
 Servo leftServo;
 Servo rightServo;
@@ -90,7 +92,9 @@ void loop() {
     Serial.print(" : ");
     Serial.print(elev);
     Serial.print(" : ");
-    Serial.println(pulseIn(BUTTON, HIGH));
+    Serial.print(pulseIn(BUTTON, HIGH));
+    Serial.println(" : ");
+    
     printTime = time;
   }
 
@@ -103,6 +107,7 @@ void loop() {
         alie += ALIEDEAD ;
       }
       int turn = (double)(alie - alieZero)*trunReduct;
+      Serial.println(turn);
       leftServo.writeMicroseconds(turn+alieZero);
       stillTime = time;
       led2 = true;
