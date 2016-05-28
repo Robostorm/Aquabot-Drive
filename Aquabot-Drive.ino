@@ -93,7 +93,7 @@ void loop() {
     Serial.print(elev);
     Serial.print(" : ");
     Serial.print(pulseIn(BUTTON, HIGH));
-    Serial.println(" : ");
+    Serial.println+(" : ");
     
     printTime = time;
   }

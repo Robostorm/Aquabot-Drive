@@ -1,4 +1,5 @@
 Debug/
+Release/
 Visual Micro/
 *.atsuo
 *.cppproj
