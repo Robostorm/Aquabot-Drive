@@ -13,11 +13,15 @@
 #define ALIEMAX 1000
 #define ALIEMIN 2000
 #define ALIEDEAD 50
+#define ALIEACC 20
 
 #define ELEVZERO 1486
 #define ELEVMAX 1000
 #define ELEVZMIN 2000
 #define ELEVDEAD 50
+#define ELEVACC 20
+
+#define DRIVEDELAY 5000
 
 #define STARTDELAY 2000
 
@@ -30,8 +34,10 @@ int time = 0;
 int printTime = 0;
 int alieZero = ALIEZERO;
 int elevZero = ELEVZERO;
-int alie = 0;
-int elev = 0;
+int alie = ALIEZERO;
+int elev = ELEVZERO;
+int alieOut = ALIEZERO;
+int elevOut = ELEVZERO;
 int oldAlie = 0;
 int oldElev = 0;
 int leftMotor = 0;
@@ -93,40 +99,64 @@ void loop() {
     Serial.print(elev);
     Serial.print(" : ");
     Serial.print(pulseIn(BUTTON, HIGH));
-    Serial.println+(" : ");
-    
+    Serial.print(" : ");
+    Serial.print(alieOut);
+    Serial.print(" : ");
+    Serial.print(elevOut);
+    Serial.println();
+
     printTime = time;
   }
 
+  led2 = false;
+
   //motors
   if(enabled) {
+
     if (alie < alieZero - ALIEDEAD || alie > alieZero + ALIEDEAD) {
       if(alie > ALIEDEAD ){
         alie -= ALIEDEAD ;
       }else{
         alie += ALIEDEAD ;
       }
-      int turn = (double)(alie - alieZero)*trunReduct;
-      Serial.println(turn);
-      leftServo.writeMicroseconds(turn+alieZero);
+
+      if(alie > alieOut){
+        alieOut += ALIEACC;
+      }else if(alie < alieOut){
+        alieOut -= ALIEACC;
+      }
+
+      leftServo.writeMicroseconds(alieOut);
       stillTime = time;
       led2 = true;
+
     } else {
       leftServo.writeMicroseconds(alieZero);
-      led2 = false;
+      alieOut = alieZero;
     }
+
+
+
     if (elev < elevZero - ELEVDEAD || elev > elevZero + ELEVDEAD) {
       if(elev > ELEVZERO){
         elev -= ELEVDEAD;
       }else{
         elev += ELEVDEAD;
       }
-      rightServo.writeMicroseconds(elev);
-	    stillTime = time;
+
+      if(elev > elevOut){
+        elevOut += ELEVACC;
+      }else if(elev < elevOut){
+        elevOut -= ELEVACC;
+      }
+
+      rightServo.writeMicroseconds(elevOut);
+      stillTime = time;
       led2 = true;
+
     }  else {
+      elevOut = elevZero;
       rightServo.writeMicroseconds(elevZero);
-      led2 = false;
     }
   }
 
@@ -136,7 +166,7 @@ void loop() {
   digitalWrite(LED2, led2);
 
   //safety
-  if(time - stillTime >= 5000) {
+  if(time - stillTime >= DRIVEDELAY) {
     enabled = false;
     leftServo.write(90);
     rightServo.write(90);
@@ -144,7 +174,7 @@ void loop() {
 
   if(pulseIn(BUTTON, HIGH) > 1500) {
     enabled = true;
-	stillTime = time;
+    stillTime = time;
   }
 }
 
