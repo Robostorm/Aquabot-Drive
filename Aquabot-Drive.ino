@@ -14,12 +14,14 @@
 #define ALIEMIN 2000
 #define ALIEDEAD 50
 #define ALIEACC 20
+#define ALIETIMEOUT 3000
 
 #define ELEVZERO 1486
 #define ELEVMAX 1000
 #define ELEVZMIN 2000
 #define ELEVDEAD 50
 #define ELEVACC 20
+#define ELEVTIMEOUT 3000
 
 #define DRIVEDELAY 5000
 
@@ -170,6 +172,17 @@ void loop() {
     enabled = false;
     leftServo.write(90);
     rightServo.write(90);
+  }
+
+  // timeout for input signals for if they get disconnected
+  if(micros() - oldAlie > ALIETIMEOUT) {
+      oldAlie = micros();
+      alie = alieZero;
+  }
+
+  if(micros() - oldElev > ELEVTIMEOUT) {
+      oldElev= micros();
+      elev = alieZero;
   }
 
   if(pulseIn(BUTTON, HIGH) > 1500) {
