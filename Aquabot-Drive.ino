@@ -23,6 +23,9 @@
 #define ELEVACC 20
 #define ELEVTIMEOUT 3000
 
+#define LEFTZERO 1500
+#define RIGHTZERO 1500
+
 #define DRIVEDELAY 5000
 
 #define STARTDELAY 2000
@@ -38,12 +41,16 @@ int alieZero = ALIEZERO;
 int elevZero = ELEVZERO;
 int alie = ALIEZERO;
 int elev = ELEVZERO;
-int alieOut = ALIEZERO;
-int elevOut = ELEVZERO;
+int alieOut = 0;
+int elevOut = 0;
 int oldAlie = 0;
 int oldElev = 0;
-int leftMotor = 0;
-int rightMotor = 0;
+
+int left = 0;
+int right = 0;
+
+int leftOut = LEFTZERO;
+int rightOut = RIGHTZERO;
 
 boolean led1 = false;
 boolean led2 = false;
@@ -77,8 +84,8 @@ void setup() {
   //elevZero = elev;
 
   // Write to center pos, delay to make sure they are calibrated on motor controller
-  leftServo.writeMicroseconds(alieZero);
-  rightServo.writeMicroseconds(elevZero);
+  leftServo.writeMicroseconds(LEFTZERO);
+  rightServo.writeMicroseconds(RIGHTZERO);
   delay(STARTDELAY);
 
   // Blink LEDs
@@ -95,16 +102,26 @@ void setup() {
 
 void loop() {
   time = millis();
-  if (time - printTime >= 100) {
+  if (time - printTime >= 1) {
     Serial.print(alie);
     Serial.print(" : ");
     Serial.print(elev);
     Serial.print(" : ");
     Serial.print(pulseIn(BUTTON, HIGH));
     Serial.print(" : ");
+    Serial.print(enabled);
+    Serial.print(" : ");
     Serial.print(alieOut);
     Serial.print(" : ");
     Serial.print(elevOut);
+    Serial.print(" : ");
+    Serial.print(left);
+    Serial.print(" : ");
+    Serial.print(right);
+    Serial.print(" : ");
+    Serial.print(leftOut);
+    Serial.print(" : ");
+    Serial.print(rightOut);
     Serial.println();
 
     printTime = time;
@@ -122,19 +139,24 @@ void loop() {
         alie += ALIEDEAD ;
       }
 
+      /*
       if(alie > alieOut){
         alieOut += ALIEACC;
       }else if(alie < alieOut){
         alieOut -= ALIEACC;
       }
+      */
 
-      leftServo.writeMicroseconds(alieOut);
+      alieOut = alie-alieZero;
+
+      //leftServo.writeMicroseconds(alieOut);
       stillTime = time;
       led2 = true;
 
     } else {
-      leftServo.writeMicroseconds(alieZero);
-      alieOut = alieZero;
+      //leftServo.writeMicroseconds(alieZero);
+      //alieOut = alieZero;
+      alieOut = 0;
     }
 
 
@@ -146,20 +168,33 @@ void loop() {
         elev += ELEVDEAD;
       }
 
+      /*
       if(elev > elevOut){
         elevOut += ELEVACC;
       }else if(elev < elevOut){
         elevOut -= ELEVACC;
       }
+      */
 
-      rightServo.writeMicroseconds(elevOut);
+      elevOut = elev-elevZero;
+
+      //rightServo.writeMicroseconds(elevOut);
       stillTime = time;
       led2 = true;
 
     }  else {
-      elevOut = elevZero;
-      rightServo.writeMicroseconds(elevZero);
+      elevOut = 0;
+      //rightServo.writeMicroseconds(elevZero);
     }
+
+    left = alieOut+elevOut;
+    right = alieOut-elevOut;
+
+    leftOut = left+LEFTZERO;
+    rightOut = right+RIGHTZERO;
+
+    leftServo.writeMicroseconds(leftOut);
+    rightServo.writeMicroseconds(rightOut);
   }
 
   led1 = enabled;
@@ -170,8 +205,10 @@ void loop() {
   //safety
   if(time - stillTime >= DRIVEDELAY) {
     enabled = false;
-    leftServo.write(90);
-    rightServo.write(90);
+    leftServo.writeMicroseconds(LEFTZERO);
+    rightServo.writeMicroseconds(RIGHTZERO);
+    //leftServo.write(90);
+    //rightServo.write(90);
   }
 
   // timeout for input signals for if they get disconnected
@@ -198,7 +235,10 @@ void alieRising() {
 
 void alieFalling() {
   attachInterrupt(ALIE, alieRising, RISING);
-  alie = micros() - oldAlie;
+  int newAlie = micros() - oldAlie;
+  if (newAlie >= 1000 && newAlie <= 2000) {
+      alie = newAlie;
+  }
 }
 
 void elevRising() {
@@ -208,5 +248,8 @@ void elevRising() {
 
 void elevFalling() {
   attachInterrupt(ELEV, elevRising, RISING);
-  elev = micros() - oldElev;
+  int newElev = micros() - oldElev;
+  if (newElev >= 1000 && newElev <= 2000) {
+      elev = newElev;
+  }
 }
